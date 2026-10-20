@@ -7,7 +7,6 @@ import { fileURLToPath } from "node:url";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
@@ -24,7 +23,8 @@ const allowedWho = new Set(["a crush","a new match","someone I'm dating","an ex"
 app.get("/api/health", (_req,res) => res.json({ok:true}));
 app.post("/api/replies", upload.single("screenshot"), async (req,res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) return res.status(503).json({error:"Server is missing its OpenAI API key."});
+    if (!process.env.OPENAI_API_KEY) return res.status(503).json({error:"Server is missing its OpenAI API key. Add OPENAI_API_KEY in Render environment variables."});
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const text = typeof req.body.text === "string" ? req.body.text.trim().slice(-6000) : "";
     let vibes; try { vibes=JSON.parse(req.body.vibes || "[]"); } catch { vibes=[]; }
     const who = typeof req.body.who === "string" ? req.body.who : "a crush";
